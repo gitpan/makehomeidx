@@ -1,0 +1,159 @@
+
+                                       
+   __________________________________________________________________________
+                                       
+                                  MAKEHOMEIDX
+                                       
+   A Perl program to generate a home pages index of all user home pages
+   on a machine.
+   
+   
+     _________________________________________________________________
+   
+Description
+
+   makehomeidx creates an HTML file (home pages index) containing links
+   to users home pages on the machine makehomeidx is invoked. This
+   program can be executed from cron(1) to automate the adding of user's
+   home pages to a Web server.
+   
+   makehomeidx scans through a UNIX password file (-passwd option) and
+   checks each user's account if (s)he has defined a home page.
+   makehomeidx does the following for each user:
+   
+     * Check for the existance of a public html directory (-pubhtml
+       option) in the user's home directory.
+       
+     * Check for the existance of one of the following files in the
+       public html directory in the order listed:
+          + index.html
+          + home.html
+          + <user's login name>.html
+            
+     * Check for the existance of a makehomeidx resource file (-idxrc
+       option) in the user's public html directory. The file contains two
+       lines. The first line is the user's name to use in the home page
+       index. The second line is the user's (job) title to appear after
+       the user's name.
+       
+       If no resource file exists, the user's name as specified in the
+       UNIX password file will be used, and no job title is listed.
+       
+   The resulting home page index file lists the users with defined home
+   pages sorted by last name.
+   
+   See Usage for a complete list of options that affect the behavior of
+   makehomeidx.
+   
+   
+     _________________________________________________________________
+   
+Usage
+
+   makehomeidx is invoked from a Unix shell, with the following syntax:
+   
+   % makehomeidx [options] outfile
+   
+   The resulting HTML home pages index file is specified by outfile.
+   
+   The following options are available to makehomeidx:
+   
+   -excfile filename
+          Use filename as the exclude file listing login names that
+          should be excluded in the home page index.
+          
+          Each login name must be listed on a separate line in the file.
+          
+   -footer filename
+          Appends the contents of filename to the home pages index
+          (outfile). The file may contain any HTML markup excluding the
+          <HTML>, <HEAD>, and <BODY> tags.
+          
+   -header filename
+          Prepends the contents of filename to the home pages index
+          (outfile). The file may contain any HTML markup excluding the
+          <HTML>, <HEAD>, and <BODY> tags.
+          
+   -help
+          Print out a short help message about makehomeidx.
+          
+   -hostname string
+          Use string as the name of the host machine. Otherwise, use the
+          string returned by hostname(1).
+          
+   -idxrc name
+          Use name as the filename of individuals makehomeidx resource
+          file. Otherwise, use ".homeidxrc".
+          
+   -incfile filename
+          Use filename as the include file listing login names that
+          should be included in the home page index. Login names not
+          listed, are automatically excluded in the index. This allows
+          you to restrict the total possible users that will be indexed.
+          
+          If a login name appears in the include file and the exclude
+          file specified by -excfile, then the user is excluded.
+          
+          Each login name must be listed on a separate line in the file.
+          
+   -passwd filename
+          Use filename as the UNIX password file. Otherwise, use
+          "/etc/passwd" instead. If filename is equal to "-", then
+          makehomeidx reads the password file from standard input. This
+          can be useful for password files that are accesible via NIS.
+          Example: ypcat passwd | makehomeidx -passwd - homepages.html
+          
+   -pubhtml name
+          Use name as the directory name of user's public html directory.
+          Otherwise, use "public_html".
+          
+   -title string
+          Use string for the title of the home pages index (outfile).
+          Otherwise, use "Home Pages".
+          
+   
+     _________________________________________________________________
+   
+Notes
+
+     * The syntax of the URLs used to link to user's home page is as
+       follows:
+       
+       http://hostname/%7Elogin/homepage
+       
+       where,
+       
+          + hostname = machine name
+          + login = login name of user
+          + homepage = name of home page of user
+            
+   The URLs work for the NCSA http daemon. makehomeidx has only been
+       tested with the NCSA httpd. The author is not sure if the URLs
+       will work for other http daemons.
+       
+     * The UNIX passwd file is assumed to be a BSD style password file in
+       determining a user's real-life name. If no makehomeidx resource
+       file exists and no real-life name is defined in the password file,
+       then the user's login name is used.
+       
+     * makehomeidx requires the use of newgetopt.pl.
+       
+   
+     _________________________________________________________________
+   
+Author
+
+    Earl Hood
+    ehood@convex.com
+    CONVEX Computer Corporation
+    3000 Waterview Parkway
+    P.O. Box 833851
+    Richardson, TX 75083-3851
+    
+    Phone: (214) 497-4387
+    FAX: (214) 497-4500
+    
+   
+     _________________________________________________________________
+   
+    makehomeidx 1.1.0

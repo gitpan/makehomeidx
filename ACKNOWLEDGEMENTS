@@ -1,0 +1,16 @@
+ACKNOWLEDGEMENTS for makehomeidx
+
+---------------------------------------------------------------------------
+Thanks to the following people for finding bugs/giving comments/whatever
+that effected the functionality of makehomeidx:
+
+    Harry Dijkstra
+    Ken Harward <harward@convex.com>
+    Markus Gyger <mgyger@itr.ch>
+
+Sorry for those I left unintentionally out.
+
+And thanks to Larry Wall for inventing Perl :-)
+
+---------------------------------------------------------------------------
+Earl Hood, ehood@convex.com

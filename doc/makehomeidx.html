@@ -1,0 +1,191 @@
+<HTML>
+<HEAD><TITLE>makehomeidx 1.1.0
+</TITLE>
+</HEAD>
+<BODY>
+<H1><HR>makehomeidx
+</H1>
+
+       A <A HREF="http://www.cis.ufl.edu/perl/">Perl</A> program to generate a home pages index of all user home pages on a 
+       machine.
+<P>
+
+<HR>
+<H2>Description
+</H2>
+
+       <CODE>makehomeidx</CODE> creates an HTML file (<EM>home pages index</EM>) containing links to users 
+       home pages on the machine <CODE>makehomeidx</CODE> is invoked. This program can be 
+       executed from <CODE>cron</CODE>(1) to automate the adding of user's home pages to a Web 
+       server.
+<P>
+
+       <CODE>makehomeidx</CODE> scans through a UNIX password file (<A HREF="#20021"><CODE>-passwd</CODE></A> option) and checks 
+       each user's account if (s)he has defined a home page. <CODE>makehomeidx</CODE> does the 
+       following for each user:
+<P>
+
+<UL>
+<LI>          Check for the existance of a public html directory (<A HREF="#34411"><CODE>-pubhtml</CODE></A> option) in 
+              the user's home directory.
+<P><LI>          Check for the existance of one of the following files in the public html 
+              directory in the order listed:
+<UL>
+<LI>                 <CODE>index.html</CODE> 
+<LI>                 <CODE>home.html</CODE> 
+<LI>                 <VAR>&lt;user's login name&gt;</VAR><CODE>.html</CODE> 
+<P></UL>
+<LI>          Check for the existance of a <CODE>makehomeidx</CODE> resource file (<A HREF="#40013"><CODE>-idxrc</CODE></A> option) 
+              in the user's public html directory. The file contains two lines. The first line 
+              is the user's name to use in the home page index. The second line is the 
+              user's (job) title to appear after the user's name.
+<P>              If no resource file exists, the user's name as specified in the UNIX 
+              password file will be used, and no job title is listed.
+<P>
+
+</UL>
+       The resulting home page index file lists the users with defined home pages sorted 
+       by last name.
+<P>
+
+       See <A HREF="#36624">Usage</A> for a complete list of options that affect the behavior of <CODE>makehomeidx</CODE>.
+<P>
+
+<HR>
+<H2><A NAME="36624">Usage</A>
+</H2>
+
+       <CODE>makehomeidx</CODE> is invoked from a Unix shell, with the following syntax:
+<P>
+
+       <CODE>% makehomeidx </CODE>[<VAR>options</VAR>] <VAR>outfile</VAR> 
+<P>
+
+       The resulting HTML home pages index file is specified by <VAR>outfile</VAR>.
+<P>
+
+       The following options are available to <CODE>makehomeidx</CODE>:
+<P>
+
+<DL>
+<DT>          <CODE><A NAME="16412">-excfile</A></CODE> <VAR>filename</VAR> 
+
+<DD>              Use <VAR>filename</VAR> as the exclude file listing login names that should be excluded 
+              in the home page index.
+              
+<P>              Each login name must be listed on a separate line in the file.
+<P></DL>
+<DL>
+<DT>          <CODE>-footer</CODE><VAR> filename</VAR> 
+
+<DD>              Appends the contents of <VAR>filename</VAR> to the home pages index (<VAR>outfile</VAR>). The file 
+              may contain any HTML markup excluding the &lt;HTML&gt;, &lt;HEAD&gt;, and 
+              &lt;BODY&gt; tags.
+</DL>
+<DL>
+<DT>          <CODE>-header</CODE> <VAR>filename</VAR> 
+
+<DD>              Prepends the contents of <VAR>filename</VAR> to the home pages index (<VAR>outfile</VAR>). The file 
+              may contain any HTML markup excluding the &lt;HTML&gt;, &lt;HEAD&gt;, and 
+              &lt;BODY&gt; tags.
+</DL>
+<DL>
+<DT>          <CODE>-help</CODE> 
+
+<DD>              Print out a short help message about <CODE>makehomeidx</CODE>.
+</DL>
+<DL>
+<DT>          <CODE>-hostname</CODE> <VAR>string</VAR> 
+
+<DD>              Use <VAR>string</VAR> as the name of the host machine. Otherwise, use the string 
+              returned by <CODE>hostname</CODE>(1).
+</DL>
+<DL>
+<DT>          <CODE><A NAME="40013">-idxrc</A></CODE> <VAR>name</VAR> 
+
+<DD>              Use <VAR>name</VAR> as the filename of individuals <CODE>makehomeidx</CODE> resource file. 
+              Otherwise, use "<CODE>.homeidxrc</CODE>".
+</DL>
+<DL>
+<DT>          <CODE>-incfile</CODE> <VAR>filename</VAR> 
+
+<DD>              Use <VAR>filename</VAR> as the include file listing login names that should be included 
+              in the home page index. Login names not listed, are automatically 
+              excluded in the index. This allows you to restrict the total possible users 
+              that will be indexed. 
+              
+<P>              If a login name appears in the include file and the exclude file specified by 
+              <A HREF="#16412"><CODE>-excfile</CODE></A>, then the user is excluded.
+<P>              Each login name must be listed on a separate line in the file.
+<P></DL>
+<DL>
+<DT>          <CODE><A NAME="20021">-passwd</A></CODE> <VAR>filename</VAR> 
+
+<DD>              Use <VAR>filename</VAR> as the UNIX password file. Otherwise, use "<CODE>/etc/passwd</CODE>" 
+              instead. If <VAR>filename</VAR> is equal to "<CODE>-</CODE>", then <CODE>makehomeidx</CODE> reads the password 
+              file from standard input. This can be useful for password files that are 
+              accesible via NIS. <STRONG>Example</STRONG>:<CODE> ypcat passwd | makehomeidx -passwd 
+              - homepages.html</CODE> 
+</DL>
+<DL>
+<DT>          <CODE><A NAME="34411">-pubhtml</A></CODE> <VAR>name</VAR> 
+
+<DD>              Use <VAR>name</VAR> as the directory name of user's public html directory. Otherwise, 
+              use "<CODE>public_html</CODE>".
+</DL>
+<DL>
+<DT>          <CODE>-title</CODE> <VAR>string</VAR> 
+
+<DD>              Use <VAR>string</VAR> for the title of the home pages index (outfile). Otherwise, use 
+              "Home Pages".
+</DL>
+<HR>
+<H2>Notes
+</H2>
+
+<UL>
+<LI>          The syntax of the URLs used to link to user's home page is as follows:
+<P>              <CODE>http://</CODE><VAR>hostname</VAR><CODE>/%7E</CODE><VAR>login</VAR><CODE>/</CODE><VAR>homepage</VAR> 
+<P>
+
+              where,
+<P>
+
+<UL>
+<LI>                 <VAR>hostname</VAR> = machine name
+<LI>                 <VAR>login</VAR> = login name of user
+<LI>                 <VAR>homepage</VAR> = name of home page of user
+<P></UL>
+              The URLs work for the NCSA http daemon. <CODE>makehomeidx</CODE> has only been 
+              tested with the NCSA httpd. The author is not sure if the URLs will work 
+              for other http daemons.
+<P>
+
+<LI>          The UNIX passwd file is assumed to be a BSD style password file in 
+              determining a user's real-life name. If no <CODE>makehomeidx</CODE> resource file 
+              exists and no real-life name is defined in the password file, then the user's 
+              login name is used.
+<P><LI>          <CODE>makehomeidx</CODE> requires the use of <CODE>newgetopt.pl</CODE>.
+<P></UL>
+<HR>
+<H2>Author
+</H2>
+
+<ADDRESS>       <A HREF="http://www.oac.uci.edu/indiv/ehood/">Earl Hood<BR>
+</A>
+       <A HREF="mailto:ehood@convex.com">ehood@convex.com<BR>
+</A>
+       <A HREF="http://www.convex.com/">CONVEX Computer Corporation<BR>
+</A>
+       3000 Waterview Parkway<BR>
+       P.O. Box 833851<BR>
+       Richardson, TX  75083-3851<BR>
+       <BR>
+       Phone: (214) 497-4387<BR>
+       FAX: (214) 497-4500<BR>
+       
+</ADDRESS><HR>
+<ADDRESS>       makehomeidx 1.1.0
+</ADDRESS>
+</BODY>
+</HTML>

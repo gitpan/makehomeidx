@@ -1,0 +1,43 @@
+CHANGES for makehomeidx
+
+MM/DD/YY
+===========================================================================
+01/02/96	(1.1.1)
+
+	o  Fixed bug where no links were created if the -incfile option
+	   was NOT specified.
+
+===========================================================================
+11/22/95	(1.1.0)
+
+	o  Added the -incfile option for the ability to only check
+	   specified users for home pages.
+
+	o  Added the -excfile option for the ability to exclude specific
+	   users from being indexed.
+
+	o  If the -title string contains HTML tags, the tags are
+	   stripped out for the TITLE element, but preserved for the
+	   H1 element.
+
+	o  makehomeidx is now detects if the TITLE element is defined
+	   in the file specified by -header.  If so, makehomeidx will
+	   *ignore* the -title argument and not insert the <html>,
+	   <head>, <body>, and <h1> tags.  It is up to the header file
+	   to include them.
+
+	o  If a </body> or </html> tag exists in the -footer file,
+	   makehomeidx will not insert those tags in the output file.
+
+===========================================================================
+07/21/94	(1.0.1)
+
+	o  If '-' is specified as the passwd file via the -passwd
+	   option, makehomeidx will read the passwd file from
+	   standard input.  Useful if passwd file is obtained
+	   via NIS.  Example:
+
+	    % ypcat passwd | makehomeidx -passwd - homepages.html
+
+===========================================================================
+Earl Hood, ehood@convex.com

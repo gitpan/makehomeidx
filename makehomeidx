@@ -1,0 +1,231 @@
+#! /usr/local/bin/perl
+##---------------------------------------------------------------------------##
+##  File:
+##      makehomeidx
+##  Author:
+##      Earl Hood       ehood@convex.com
+##  Description:
+##	makehomeidx searches all entries /etc/passwd and creates a home page
+##	index for a Web server of all users who have defined a home page
+##	in their public HTML directory.
+##---------------------------------------------------------------------------##
+##  Copyright (C) 1994  Earl Hood, ehood@convex.com
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##  
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##  
+##  You should have received a copy of the GNU General Public License
+##  along with this program; if not, write to the Free Software
+##  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+##---------------------------------------------------------------------------##
+
+require "newgetopt.pl" || die "Unable to require newgetopt.pl\n";
+
+## Store name of program ##
+($PROG = $0) =~ s/.*\///;
+$VERSION = '1.1.1';
+
+%includes = ();
+%excludes = ();
+
+## Get command-line options ##
+&Usage() unless
+&NGetOpt(
+
+    "excfile=s",	# Exclude file
+    "footer=s",		# Filename of footer text for home page index
+    "header=s",		# Filename of header text for home page index
+    "hostname=s",	# Hostname of machine
+    "idxrc=s",		# Name of indiv resource file
+    "incfile=s",	# Include file
+    "passwd=s",		# Password file to use
+    "pubhtml=s",	# Public html directory
+    "title=s",		# Title of home page index
+
+    "help"
+);
+&Usage() if defined($opt_help);
+&Usage("No destination file") if $#ARGV < 0;
+&read_excfile($opt_excfile)  if $opt_excfile;
+&read_incfile($opt_incfile)  if $opt_incfile;
+
+## Initialize variables ##
+open(HOMEIDX, "> $ARGV[0]") || die "Unable to create $ARGV[0]\n";
+$H1 = ($opt_title ? $opt_title : "Home Pages");
+($TITLE = $H1) =~ s/<[^>]*>//g;
+$HEADER = "";
+if ($opt_header) {
+    if (open(HEADER, "$opt_header")) {
+	while (<HEADER>) { $HEADER .= $_; }
+    } else {
+	warn "Unable to open $opt_header\n";
+    }
+}
+$FOOTER = "";
+if ($opt_footer) {
+    if (open(FOOTER, "$opt_footer")) {
+	while (<FOOTER>) { $FOOTER .= $_; }
+    } else {
+	warn "Unable to open $opt_footer\n";
+    }
+}
+$PUBHTML = ($opt_pubhtml ? $opt_pubhtml : "public_html");
+$IDXRC = ($opt_idxrc ? $opt_idxrc : ".homeidxrc");
+$HOSTNAME = ($opt_hostname ? $opt_hostname : `hostname`);
+    $HOSTNAME =~ s/\s//g;
+$PASSWD = ($opt_passwd ? $opt_passwd : "/etc/passwd");
+
+
+## Start HTML of home page index ##
+if ($HEADER && ($HEADER =~ /<title/i)) {
+    print HOMEIDX $HEADER;
+} else {
+    print HOMEIDX "<html>\n",
+		  "<head>\n",
+		  "<title>$TITLE</title>\n",
+		  "</head>\n",
+		  "<body>\n",
+		  "<h1>$H1</h1>\n",
+		  "<hr>\n",
+		  $HEADER, "\n";
+}
+
+%Names = ();
+%Jobs = ();
+%HomePages = ();
+
+## Read passwd file ##
+if ($PASSWD eq '-') {
+    $PFile = 'STDIN';
+} else {
+    open(PASSWD, $PASSWD) || die "Can't open $PASSWD: $!\n";
+    $PFile = 'PASSWD';
+}
+while (<$PFile>) {
+    chop;
+    ($login,$passwd,$uid,$gid,$gcos,$home,$shell) = split(/:/);
+    next  if ($excludes{$login} || (defined($includes{$login}) &&
+				    !$includes{$login}));
+    ($name,$office,$phone,$misc) = split(/,/,$gcos);
+    $dir = "$home/$PUBHTML";
+    if (-d $dir && ($homepage = &get_home_name($dir, $login))) {
+	$job = "";
+	if (-f "$dir/$IDXRC" && open(IDXRC, "$dir/$IDXRC")) {
+	    $name = <IDXRC>;  chop $name;
+	    $job = <IDXRC>;  chop $job  if $job =~ /\n$/;
+	    close(IDXRC);
+	}
+	if ($name) {
+	    (@array) = split(' ', $name);
+	    unshift(@array, pop @array) if $#array > 0;
+	    $idx = join(' ', @array);
+	} else {
+	    $idx = $login;
+	}
+	$Names{$idx} = $name;
+	$Jobs{$idx} = $job;
+	$HomePages{$idx} = $homepage;
+    }
+}
+close($PFile);
+
+## Write index ##
+print HOMEIDX "<ul>\n";
+foreach (sort keys %Names) {
+    print HOMEIDX qq|<li><a href="$HomePages{$_}">$Names{$_}</a>|;
+    print HOMEIDX qq| - $Jobs{$_}|  if ($Jobs{$_} !~ /^\s*$/);
+    print HOMEIDX qq|</li>\n|;
+}
+print HOMEIDX "</ul>\n";
+
+if ($FOOTER && (($FOOTER =~ m%</body%i) || ($FOOTER =~ m%</html%i))) {
+    print HOMEIDX $FOOTER;
+} else {
+    print HOMEIDX $FOOTER, "\n",
+		  "</body>\n",
+		  "</html>\n";
+}
+
+exit 0;
+
+##---------------------------------------------------------------------------
+sub get_home_name {
+    local($path, $login) = @_;
+    local($ret);
+
+    if (-f "$path/index.html") {
+	$ret = "http://$HOSTNAME/%7E$login/index.html";
+    } elsif (-f "$path/home.html") {
+	$ret = "http://$HOSTNAME/%7E$login/home.html";
+    } elsif (-f "$path/$login.html") {
+	$ret = "http://$HOSTNAME/%7E$login/$login.html";
+    } else {
+	$ret = "";
+    }
+    $ret; 
+}
+##---------------------------------------------------------------------------
+sub read_excfile {
+    local($filename) = shift;
+
+    if (open(EXCFILE, $filename)) {
+	while (<EXCFILE>) {
+	    s/\s//g;
+	    $excludes{$_} = 1  if $_;
+	}
+    } else {
+	warn "Warning: Unable to open $filename\n";
+    }
+}
+##---------------------------------------------------------------------------
+sub read_incfile {
+    local($filename) = shift;
+
+    if (open(INCFILE, $filename)) {
+	while (<INCFILE>) {
+	    s/\s//g;
+	    $includes{$_} = 1  if $_;
+	}
+    } else {
+	warn "Warning: Unable to open $filename\n";
+    }
+}
+##---------------------------------------------------------------------------
+sub Usage {
+    local($str) = shift;
+    print STDOUT $str if $str;
+    print STDOUT <<EndOfUsage;
+Usage: $PROG [<options>] directory ... 
+Options:
+  -excfile <filename>	: User exclude file
+  -footer <filename>	: Filename of footer text for home page index
+  -header <filename>	: Filename of header text for home page index
+  -help			: This message.
+  -hostname <string>	: Hostname of machine (def: `hostname`)
+  -idxrc <name>		: Name of indiv resource file (def: ".homeidxrc")
+  -incfile <filename>	: User include file
+  -passwd <filename>    : Password file to use (def: "/etc/passwd")
+  -pubhtml <name>	: Public html directory	name (def: "public_html")
+  -title <string>	: Title of home page index (def: "Home Pages")
+Description:
+  $PROG searches all entries /etc/passwd and creates a home page index
+  for a Web server of all users who have defined a home page in their public
+  HTML directory.
+Version:
+  $VERSION
+  Copyright (C) 1995  Earl Hood, ehood\@convex.com
+  $PROG comes with ABSOLUTELY NO WARRANTY and $PROG may be copied
+  only under the terms of the GNU General Public License, which may be found
+  in the $PROG distribution.
+
+EndOfUsage
+
+    exit 0;
+}
